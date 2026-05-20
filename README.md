@@ -51,6 +51,32 @@ docker run -it --rm \
 
 
 
+### 💻 GitHub Codespaces High-Performance Deployment (Recommended)
+
+If you are deploying this container inside **GitHub Codespaces**, you can unlock massive bare-metal speed by taking advantage of Codespaces' native nested virtualization support. 
+
+Follow these two simple steps to build and launch your Windows 10 environment with optimized cloud resources (**4 CPU Cores, 12GB RAM, and 100GB Disk**):#### Step 1: Compile the Image locally inside your Codespace
+
+```bash
+docker build -t walksysdev/windows10-vm .
+```
+Step 2: Run the VM with Full Hardware Pass-through
+
+```bash
+docker run -it --rm \
+  --device /dev/kvm \
+  -p 6080:6080 \
+  -p 3389:3389 \
+  -v windows_data:/data \
+  -v windows_iso:/iso \
+  -e RAM=12288 \
+  -e CORES=4 \
+  -e DISK_SIZE=100G \
+  walksysdev/windows10-vm
+```
+
+💡 Why this profile? GitHub Codespaces machines heavily support the --device /dev/kvm flag. By passing RAM=12288 (12GB) and CORES=4, the Windows 10 Lite OS will boot instantly and operate with near-zero interface lag via VNC or RDP.
+
 ## 🌐 Network Routing & Access Links
 
 | Connection Type | Target Address / URL | Transport Port | Description |
