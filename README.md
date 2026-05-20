@@ -2,8 +2,6 @@
 
 A high-performance, dynamic **Windows 10 Lite Virtual Machine (VM)** running seamlessly inside a Docker container using QEMU/KVM virtualization. This image features automated storage initialization, dynamic hardware environment checks, an embedded **noVNC** web browser GUI, and native **RDP (Remote Desktop)** infrastructure forwarding.
 
-
-
 ## ⚡ Key Features
 
 * 🌍 **VNC Web Interface:** Integrated `noVNC` and `websockify` layers to access the full Windows graphical desktop straight from any modern web browser.
@@ -19,22 +17,13 @@ A high-performance, dynamic **Windows 10 Lite Virtual Machine (VM)** running sea
 * **RDP Port**: 3389
 * **Web VNC Port**: 6080
 
-
-
 ## 🚀 Usage & Deployment Profiles
 
 Launch your virtual machine with custom hardware profiles directly from the command line. To ensure your Windows data and downloaded ISO cache are preserved, always map the persistent volumes (`windows_data` and `windows_iso`).
 
+### 💻 Developer Standard Profile (8GB RAM, 4 CPU Cores, 100GB Disk)
 
-
-### 💻 Developer High-Performance Command (Recommended)
-
-Recommended for absolute fluid speed. This leverages host virtualization capabilities directly:
-### Manual Compilation Pipeline
-
-```bash
-docker build -t walksysdev/windows10-vm .
-```
+Recommended for standard external VPS hosting or dedicated server setups:
 
 ```bash
 docker run -it --rm \
@@ -49,18 +38,19 @@ docker run -it --rm \
   walksysdev/windows10-vm
 ```
 
+### ☁️ GitHub Codespaces High-Performance Profile (12GB RAM, 4 CPU Cores, 100GB Disk)
+
+If you are deploying this container inside **GitHub Codespaces**, you can unlock massive bare-metal speed by taking advantage of Codespaces' native nested virtualization support. Follow these two simple steps:
 
 
-### 💻 GitHub Codespaces High-Performance Deployment (Recommended)
 
-If you are deploying this container inside **GitHub Codespaces**, you can unlock massive bare-metal speed by taking advantage of Codespaces' native nested virtualization support. 
-
-Follow these two simple steps to build and launch your Windows 10 environment with optimized cloud resources (**4 CPU Cores, 12GB RAM, and 100GB Disk**):#### Step 1: Compile the Image locally inside your Codespace
+#### Step 1: Compile the Image locally inside your Codespace
 
 ```bash
 docker build -t walksysdev/windows10-vm .
 ```
-Step 2: Run the VM with Full Hardware Pass-through
+
+#### Step 2: Run the VM with Full Hardware Pass-through
 
 ```bash
 docker run -it --rm \
@@ -75,7 +65,7 @@ docker run -it --rm \
   walksysdev/windows10-vm
 ```
 
-💡 Why this profile? GitHub Codespaces machines heavily support the --device /dev/kvm flag. By passing RAM=12288 (12GB) and CORES=4, the Windows 10 Lite OS will boot instantly and operate with near-zero interface lag via VNC or RDP.
+> 💡 **Why this profile?** GitHub Codespaces machines heavily support the `--device /dev/kvm` flag. By passing `RAM=12288` (12GB) and `CORES=4`, the Windows 10 Lite OS will boot instantly and operate with near-zero interface lag via VNC or RDP.
 
 ## 🌐 Network Routing & Access Links
 
@@ -94,8 +84,8 @@ If you want to compile and build this virtualization image manually from the loc
 docker build -t walksysdev/windows10-vm .
 ```
 
-
-
 > ❗ **Important Note for First-Time Boot:** During the very first launch, the script will automatically stream down the Windows 10 Lite ISO directly to your `windows_iso` volume and allocate a dynamic `50GB qcow2` disk instance inside `windows_data`. The installation wizard via noVNC can take 20-30 minutes to initialize fully depending on your host network and emulation state.
+
+
 
 *Maintained with 💻 by [@walksysdev](https://hub.docker.com/r/walksysdev).*
