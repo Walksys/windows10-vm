@@ -43,6 +43,9 @@ docker run -it --rm \
   -p 3389:3389 \
   -v windows_data:/data \
   -v windows_iso:/iso \
+  -e RAM=8192 \
+  -e CORES=4 \
+  -e DISK_SIZE=100G \
   walksysdev/windows10-vm
 ```
 
