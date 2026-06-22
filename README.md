@@ -34,8 +34,8 @@ docker run -d \
   -p 3389:3389 \
   -v $(pwd)/data:/data \
   -v $(pwd)/iso:/iso \
-  -e MEM_SIZE=4G \
-  -e CPU_CORES=2 \
+  -e MEM_SIZE=8G \
+  -e CPU_CORES=4 \
   -e DISK_SIZE=100G \
   walksysdev/windows10-vm
 ```
