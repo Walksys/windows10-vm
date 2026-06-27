@@ -2,7 +2,6 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
     qemu-system-x86 \
     qemu-utils \
@@ -15,50 +14,51 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     && rm -rf /var/lib/apt/lists/*
 
-
 RUN mkdir -p /data /iso /novnc
-
 
 RUN wget https://github.com/novnc/noVNC/archive/refs/heads/master.zip -O /tmp/novnc.zip && \
     unzip /tmp/novnc.zip -d /tmp && \
     mv /tmp/noVNC-master/* /novnc && \
     rm -rf /tmp/novnc.zip /tmp/noVNC-master
 
-
 ENV ISO_URL="https://archive.org/download/windows-10-lite-edition-19h2-x64/Windows%2010%20Lite%20Edition%2019H2%20x64.iso"
 
-
+# كتابة السكريبت مع قراءة المتغيرات البيئية ديناميكياً
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
-# Check for KVM support\n\
+# تحديد القيم بناءً على ما قمت بتمريره في أمر docker run، أو استخدام قيم افتراضية ذكية\n\
+MEMORY="${MEM_SIZE:-4G}"\n\
+SMP_CORES="${CPU_CORES:-4}"\n\
+DISK_CAPACITY="${DISK_SIZE:-100G}"\n\
+\n\
+# التحقق من دعم الـ KVM وتسريع العتاد\n\
 if [ -e /dev/kvm ]; then\n\
   echo "✅ KVM acceleration available"\n\
   KVM_ARG="-enable-kvm"\n\
   CPU_ARG="host"\n\
-  MEMORY="4G"\n\
-  SMP_CORES=4\n\
 else\n\
   echo "⚠️  KVM not available - using slower emulation mode"\n\
   KVM_ARG=""\n\
   CPU_ARG="qemu64"\n\
-  MEMORY="2G"\n\
-  SMP_CORES=1\n\
+  # في حال غياب KVM، يفضل تقليل الاستهلاك الافتراضي إذا لم يحدد المستخدم شيئاً\n\
+  MEMORY="${MEM_SIZE:-2G}"\n\
+  SMP_CORES="${CPU_CORES:-1}"\n\
 fi\n\
 \n\
-# Download ISO if needed\n\
+# تحميل الـ ISO إذا لم تكن موجودة\n\
 if [ ! -f "/iso/os.iso" ]; then\n\
   echo "📥 Downloading Windows 10 ISO..."\n\
   wget -q --show-progress "$ISO_URL" -O "/iso/os.iso"\n\
 fi\n\
 \n\
-# Create disk image if not exists\n\
+# إنشاء القرص الوهمي بالحجم الديناميكي المطلوب\n\
 if [ ! -f "/data/disk.qcow2" ]; then\n\
-  echo "💽 Creating 100GB virtual disk..."\n\
-  qemu-img create -f qcow2 "/data/disk.qcow2" 100G\n\
+  echo "💽 Creating ${DISK_CAPACITY} virtual disk..."\n\
+  qemu-img create -f qcow2 "/data/disk.qcow2" "${DISK_CAPACITY}"\n\
 fi\n\
 \n\
-# Windows-specific boot parameters\n\
+# إعدادات الإقلاع الخاصة بويندوز\n\
 BOOT_ORDER="-boot order=c,menu=on"\n\
 if [ ! -s "/data/disk.qcow2" ] || [ $(stat -c%s "/data/disk.qcow2") -lt 1048576 ]; then\n\
   echo "🚀 First boot - installing Windows from ISO"\n\
@@ -67,7 +67,7 @@ fi\n\
 \n\
 echo "⚙️ Starting Windows 10 VM with ${SMP_CORES} CPU cores and ${MEMORY} RAM"\n\
 \n\
-# Start QEMU with Windows-optimized settings\n\
+# تشغيل محاكي QEMU بالإعدادات الممررة ديناميكياً\n\
 qemu-system-x86_64 \\\n\
   $KVM_ARG \\\n\
   -machine q35,accel=kvm:tcg \\\n\
@@ -84,7 +84,7 @@ qemu-system-x86_64 \\\n\
   -display vnc=:0 \\\n\
   -name "Windows10_VM" &\n\
 \n\
-# Start noVNC\n\
+# تشغيل noVNC للتحكم من المتصفح\n\
 sleep 5\n\
 websockify --web /novnc 6080 localhost:5900 &\n\
 \n\
